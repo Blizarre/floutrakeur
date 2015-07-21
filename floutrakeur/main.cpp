@@ -35,7 +35,7 @@ void main(int argc, char* argv[])
 	}
 
 	auto output = shared_ptr<std::ostream>(new std::ofstream(outputFileName));
-	CsvWriter csv(output, { "Class", "DoG", "lap2Max", "lapVar", "lapMax" });
+	CsvWriter csv(output, { "Class", "DoG", "lap2Max", "lapVar", "lapMax", "fileName" });
 
 	FileFinder f(root);
 
@@ -45,9 +45,6 @@ void main(int argc, char* argv[])
 	});
 
 	extractData(imageList, csv, dataClass);
-
-	// break
-	int test; std::cin >> test;
 }
 
 
@@ -65,7 +62,7 @@ void extractData(std::vector<std::string>& imageList, CsvWriter& csv, string dat
 		float lapMax = metrics.lapMax();
 		#pragma omp critical
 		{
-			csv.addData({ dataClass, std::to_string(dog), std::to_string(lap2Max), std::to_string(lapVar), std::to_string(lapMax) });
+			csv.addData({ dataClass, std::to_string(dog), std::to_string(lap2Max), std::to_string(lapVar), std::to_string(lapMax), imageList[i] });
 			cout << imageList[i] << " [" << omp_get_thread_num() << "]" << endl;
 		}
 	}
