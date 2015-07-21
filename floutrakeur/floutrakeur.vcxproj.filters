@@ -24,12 +24,18 @@
     <ClCompile Include="filtersMetrics.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="csvWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="fileFinder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="filtersMetrics.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="csvWriter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

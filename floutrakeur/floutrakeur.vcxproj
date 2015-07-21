@@ -159,11 +159,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="csvWriter.cpp" />
     <ClCompile Include="fileFinder.cpp" />
     <ClCompile Include="filtersMetrics.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="csvWriter.h" />
     <ClInclude Include="fileFinder.h" />
     <ClInclude Include="filtersMetrics.h" />
   </ItemGroup>

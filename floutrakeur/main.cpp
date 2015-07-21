@@ -5,20 +5,28 @@
 #include "fileFinder.h"
 #include "filtersMetrics.h"
 #include <omp.h> 
+#include <iostream>
+#include <fstream>
+#include "csvWriter.h"
 
 using namespace std;
 namespace fs = boost::filesystem;
 
+// todo: create a class for this
+void extractData(std::vector<std::string>& imageList, CsvWriter& csv, string dataClass);
+
+
 void main(int argc, char* argv[])
 {
-	if (argc != 3)
+	if (argc != 4)
 	{
-		cout << "Usage:" << endl << argv[0] << " directoryName outputFileName" << endl;
+		cout << "Usage:" << endl << argv[0] << " directoryName outputFileName class" << endl;
 		return;
 	}
 
 	string root = argv[1];
 	string outputFileName = argv[2];
+	string dataClass = argv[3];
 
 	if (! fs::exists(root) || ! fs::is_directory(root))
 	{
@@ -26,12 +34,25 @@ void main(int argc, char* argv[])
 		return;
 	}
 
+	auto output = shared_ptr<std::ostream>(new std::ofstream(outputFileName));
+	CsvWriter csv(output, { "Class", "DoG", "lap2Max", "lapVar", "lapMax" });
+
 	FileFinder f(root);
+
 	std::vector<string> imageList = f.findAll(
 		[](string n) { 
 			return boost::iends_with(n, L".jpg") || boost::iends_with(n, L".jpeg");
 	});
 
+	extractData(imageList, csv, dataClass);
+
+	// break
+	int test; std::cin >> test;
+}
+
+
+void extractData(std::vector<std::string>& imageList, CsvWriter& csv, string dataClass)
+{
 	// old-style for loop to benefit from openmp on MSVC (even 2015 !!)
 	#pragma omp parallel for
 	for (int i = 0; i < imageList.size(); i++)
@@ -42,15 +63,10 @@ void main(int argc, char* argv[])
 		float lap2Max = metrics.lap2Max();
 		float lapVar = metrics.lapVar();
 		float lapMax = metrics.lapMax();
-		
 		#pragma omp critical
 		{
-			cout << imageList[i] << " [" << omp_get_thread_num() << "] : " << endl;
-			cout << "dog: " << dog << ", lapMax: " << lapMax;
-			cout << ", lapVar: " << lapVar << ", lap2Max: " << lap2Max << endl;
+			csv.addData({ dataClass, std::to_string(dog), std::to_string(lap2Max), std::to_string(lapVar), std::to_string(lapMax) });
+			cout << imageList[i] << " [" << omp_get_thread_num() << "]" << endl;
 		}
 	}
-
-	// break
-	int test; std::cin >> test;
 }
