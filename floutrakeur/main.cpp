@@ -4,7 +4,7 @@
 #include <boost/algorithm/string.hpp>
 #include "fileFinder.h"
 #include "filtersMetrics.h"
-#include <omp.h> 
+#include <omp.h>
 #include <iostream>
 #include <fstream>
 #include "csvWriter.h"
@@ -16,12 +16,12 @@ namespace fs = boost::filesystem;
 void extractData(std::vector<std::string>& imageList, CsvWriter& csv, string dataClass);
 
 
-void main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 	if (argc != 4)
 	{
-		cout << "Usage:" << endl << argv[0] << " directoryName outputFileName class" << endl;
-		return;
+		cerr << "Usage:" << endl << argv[0] << " directoryName outputFileName class" << endl;
+		return 0;
 	}
 
 	string root = argv[1];
@@ -30,21 +30,23 @@ void main(int argc, char* argv[])
 
 	if (! fs::exists(root) || ! fs::is_directory(root))
 	{
-		cout << "Invalid input directory: " << root;
-		return;
+		cerr << "Invalid input directory: " << root << endl;
+		return 0;
 	}
 
 	auto output = shared_ptr<std::ostream>(new std::ofstream(outputFileName));
-	CsvWriter csv(output, { "Class", "DoG", "lap2Max", "lapVar", "lapMax", "fileName" });
+	CsvWriter csv(output, { "Class", "Wav mean", "DoG", "lap2Max", "lapVar", "lapMax", "fileName" });
 
 	FileFinder f(root);
 
 	std::vector<string> imageList = f.findAll(
-		[](string n) { 
+		[](string n) {
 			return boost::iends_with(n, L".jpg") || boost::iends_with(n, L".jpeg");
 	});
 
 	extractData(imageList, csv, dataClass);
+
+    return 0;
 }
 
 
@@ -55,15 +57,23 @@ void extractData(std::vector<std::string>& imageList, CsvWriter& csv, string dat
 	for (int i = 0; i < imageList.size(); i++)
 	{
 		cv::Mat image = cv::imread(imageList[i], cv::IMREAD_GRAYSCALE);
-		FiltersMetrics metrics(image);
-		float dog = metrics.dog();
-		float lap2Max = metrics.lap2Max();
-		float lapVar = metrics.lapVar();
-		float lapMax = metrics.lapMax();
-		#pragma omp critical
-		{
-			csv.addData({ dataClass, std::to_string(dog), std::to_string(lap2Max), std::to_string(lapVar), std::to_string(lapMax), imageList[i] });
-			cout << imageList[i] << " [" << omp_get_thread_num() << "]" << endl;
-		}
+        if(image.empty())
+        {
+            cerr << "Error opening image " << imageList[i] << endl;
+        }
+        else
+        {
+            FiltersMetrics metrics(image);
+            float wavMean = metrics.waveletsMean(1);
+            float dog = metrics.dog();
+            float lap2Max = metrics.lap2Max();
+            float lapVar = metrics.lapVar();
+            float lapMax = metrics.lapMax();
+            #pragma omp critical
+            {
+                csv.addData({ dataClass, std::to_string(wavMean), std::to_string(dog), std::to_string(lap2Max), std::to_string(lapVar), std::to_string(lapMax), imageList[i] });
+                cout << imageList[i] << " [" << omp_get_thread_num() << "]" << endl;
+            }
+        }
 	}
 }

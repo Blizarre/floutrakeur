@@ -16,7 +16,7 @@ public:
 
 	float lapModMax();
 
-	~FiltersMetrics();
+    float waveletsMean(int NIter);
 
 protected:
 	cv::Mat m_smooth3; // image smoothed by a 3x3 gaussian kernel

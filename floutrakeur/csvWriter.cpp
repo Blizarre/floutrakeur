@@ -1,5 +1,5 @@
 #include "csvWriter.h"
-#include <boost\algorithm\string.hpp>
+#include <boost/algorithm/string.hpp>
 
 
 CsvWriter::CsvWriter(std::shared_ptr<std::ostream> destination, std::vector<std::string> columnNames): m_destination(std::move(destination))
